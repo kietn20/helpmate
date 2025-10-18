@@ -11,3 +11,6 @@ psycopg2-binary
 pgvector
 
 python-dotenv
+
+# dependency for parsing Markdown files with LangChain
+unstructured[md]

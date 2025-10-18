@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 from langchain_community.document_loaders import DirectoryLoader
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
-
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 load_dotenv()
 
@@ -24,11 +24,23 @@ DATA_PATH = "../data/streamlit_docs"
 loader = DirectoryLoader(DATA_PATH, glob="**/*.md", show_progress=True)
 documents = loader.load()
 
+# --- 3. chunk the Documents ---
+# Initialize the text splitter
+text_splitter = RecursiveCharacterTextSplitter(
+  chunk_size=1000,
+  chunk_overlap=100,
+)
 
-print(f"Successfully loaded {len(documents)} documents.")
+# split the documents into chunks
+chunked_documents = text_splitter.split_documents(documents)
 
 
 
-# print the first few chars of the first document to verify
-if documents:
-  print(f"First document content snippet: \n'{documents[0].page_content[:200]}'")
+
+# --- 4. print a confirmation ---
+print(f"Successfully split {len(documents)} documents into {len(chunked_documents)} chunks.")
+
+# optional: print the first chunk to see the result
+if chunked_documents:
+    print(f"First chunk content snippet: \n'{chunked_documents[0].page_content}'")
+    print(f"\nMetadata of the first chunk: \n{chunked_documents[0].metadata}")
