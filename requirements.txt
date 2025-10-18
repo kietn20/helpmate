@@ -1,0 +1,13 @@
+# for the Google Gemini API and LangChain integration
+google-generativeai
+langchain-google-genai
+
+# core LangChain libraries for document processing
+langchain
+langchain-community
+
+# for interacting with PostgreSQL database
+psycopg2-binary
+pgvector
+
+python-dotenv
