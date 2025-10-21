@@ -88,11 +88,27 @@ async def on_message(message):
         
         # show a "typing..." indicator to the user
         async with message.channel.typing():
-            # invoke the RAG chain to get an answer
-            response = rag_chain.invoke(user_question)
-            
-            # then send the response back to the channel
-            await message.channel.send(response)
+            try:
+                # invoke the RAG chain
+                response = rag_chain.invoke(user_question)
+                
+                # for discord message length limit
+                if len(response) > 2000:
+                    # split the response into chunks of 2000 characters
+                    chunks = [response[i:i + 2000] for i in range(0, len(response), 2000)]
+                    for i, chunk in enumerate(chunks):
+                        # send the first message as a reply to the user's question
+                        if i == 0:
+                            await message.reply(chunk)
+                        # send subsequent messages in the channel
+                        else:
+                            await message.channel.send(chunk)
+                else:
+                    await message.reply(response)
+
+            except Exception as e:
+                await message.channel.send(f"Sorry, an error occurred: {e}")
+                print(f"Error invoking RAG chain: {e}")
 
 
 
