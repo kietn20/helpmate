@@ -99,12 +99,18 @@ async def on_message(message):
                     for i, chunk in enumerate(chunks):
                         # send the first message as a reply to the user's question
                         if i == 0:
-                            await message.reply(chunk)
+                            sent_message = await message.reply(chunk)
                         # send subsequent messages in the channel
                         else:
-                            await message.channel.send(chunk)
+                            sent_message = await message.channel.send(chunk)
+
+                        if i == len(chunks) - 1:
+                            await sent_message.add_reaction("👍")
+                            await sent_message.add_reaction("👎")
                 else:
-                    await message.reply(response)
+                    sent_message = await message.reply(response)
+                    await sent_message.add_reaction("👍")
+                    await sent_message.add_reaction("👎")
 
             except Exception as e:
                 await message.channel.send(f"Sorry, an error occurred: {e}")
