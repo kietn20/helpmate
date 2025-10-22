@@ -96,6 +96,8 @@ async def on_message(message):
                 # invoke the RAG chain
                 response = rag_chain.invoke(user_question)
                 
+                sent_message = None
+
                 # for discord message length limit
                 if len(response) > 2000:
                     # split the response into chunks of 2000 characters
@@ -105,26 +107,27 @@ async def on_message(message):
                         # send the first message as a reply to the user's question
                         if i == 0:
                             sent_message = await message.reply(chunk)
-                            # sent_message = await message.channel.send(chunk)
-                            message_cache[sent_message.id] = {"question": user_question, "answer": response}
 
                         # send subsequent messages in the channel
                         else:
                             sent_message = await message.channel.send(chunk)
-                            message_cache[sent_message.id] = {"question": user_question, "answer": response}
 
-
-                        if i == len(chunks) - 1:
-                            await sent_message.add_reaction("👍")
-                            await sent_message.add_reaction("👎")
                 else:
                     sent_message = await message.reply(response)
+
+                # cache the message and add reactions
+                if sent_message:
+                    # cache the necessary info using the ID of the LAST message sent
+                    message_cache[sent_message.id] = {"question": user_question, "answer": response}
+                    
+                    # add reactions to the last message
                     await sent_message.add_reaction("👍")
                     await sent_message.add_reaction("👎")
 
             except Exception as e:
                 await message.channel.send(f"Sorry, an error occurred: {e}")
                 print(f"Error invoking RAG chain: {e}")
+                
 
 @bot.event
 async def on_raw_reaction_add(payload):
