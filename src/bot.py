@@ -8,6 +8,9 @@ from langchain.prompts import PromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 
+import psycopg2 
+
+
 load_dotenv()
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 if DISCORD_BOT_TOKEN is None:
@@ -51,7 +54,8 @@ ANSWER:
 prompt = PromptTemplate(template=template, input_variables=["context", "question"])
 
 
-
+# in-memory cache to store message IDs and their corresponding responses
+message_cache = {}
 
 
 intents = discord.Intents.default()
@@ -97,12 +101,18 @@ async def on_message(message):
                     # split the response into chunks of 2000 characters
                     chunks = [response[i:i + 2000] for i in range(0, len(response), 2000)]
                     for i, chunk in enumerate(chunks):
+
                         # send the first message as a reply to the user's question
                         if i == 0:
                             sent_message = await message.reply(chunk)
+                            # sent_message = await message.channel.send(chunk)
+                            message_cache[sent_message.id] = {"question": user_question, "answer": response}
+
                         # send subsequent messages in the channel
                         else:
                             sent_message = await message.channel.send(chunk)
+                            message_cache[sent_message.id] = {"question": user_question, "answer": response}
+
 
                         if i == len(chunks) - 1:
                             await sent_message.add_reaction("👍")
@@ -115,6 +125,58 @@ async def on_message(message):
             except Exception as e:
                 await message.channel.send(f"Sorry, an error occurred: {e}")
                 print(f"Error invoking RAG chain: {e}")
+
+@bot.event
+async def on_raw_reaction_add(payload):
+    if payload.user_id == bot.user.id:
+        return
+    
+    if payload.message_id in message_cache:
+        # get message details from the cache
+        cached_message = message_cache[payload.message_id]
+        feedback_type = ""
+
+        if str(payload.emoji) == "👍":
+            feedback_type = "up"
+        elif str(payload.emoji) == "👎":
+            feedback_type = "down"
+        else:
+            return # ignore other reactions for now
+        
+        try:
+            conn = psycopg2.connect(
+                dbname="helpmate",
+                user="admin",
+                password="password",
+                host="localhost"
+            )
+            cur = conn.cursor()
+
+            insert_query = """
+            INSERT INTO feedback (message_id, question, answer, feedback)
+            VALUES (%s, %s, %s, %s);
+            """
+            cur.execute(insert_query, (
+                payload.message_id,
+                cached_message["question"],
+                cached_message["answer"],
+                feedback_type
+            ))
+
+            conn.commit()
+            cur.close()
+            conn.close()
+
+            print(f"Successfully logged feedback: {feedback_type} for message {payload.message_id}")
+
+        except Exception as e:
+            print(f"Error logging feedback to database: {e}")
+
+        # optional: clean up the cache for this message after logging
+        del message_cache[payload.message_id]
+
+            
+            
 
 
 
