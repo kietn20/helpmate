@@ -1,6 +1,14 @@
 version: '3.8'
 
 services:
+  bot:
+    build: .
+    container_name: helpmate_bot
+    depends_on:
+      - db
+    env_file:
+      - .env
+
   db:
     image: pgvector/pgvector:pg16
     container_name: helpmate_db
@@ -11,7 +19,7 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5432:5432" # for debugging
 
 volumes:
   pg_data:

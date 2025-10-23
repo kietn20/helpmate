@@ -19,7 +19,7 @@ if DISCORD_BOT_TOKEN is None:
 
 
 # connection string to PostgreSQL database
-CONNECTION_STRING = "postgresql+psycopg2://admin:password@localhost:5432/helpmate"
+CONNECTION_STRING = "postgresql+psycopg2://admin:password@db:5432/helpmate"
 COLLECTION_NAME = "streamlit_docs"
 
 # initialize the embeddings model
@@ -151,7 +151,7 @@ async def on_raw_reaction_add(payload):
                 dbname="helpmate",
                 user="admin",
                 password="password",
-                host="localhost"
+                host="db"
             )
             cur = conn.cursor()
 
