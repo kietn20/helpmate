@@ -19,6 +19,18 @@ This project is a complete demonstration of building and deploying a production-
 
 ## Technical Architecture
 
+![Diagram](https://github.com/kietn20/helpmate/blob/main/diagram.png)
+
+User Interaction Workflow:
+1. User asks a question by mentioning @Helpmate in Discord.
+2. The Bot generates a vector embedding of the user's question.
+3. The Bot queries the PostgreSQL database with this embedding.
+4. The Database returns the most relevant document chunks (context).
+5. The Bot sends the question and context to the Gemini LLM to generate an answer.
+6. The Bot posts the final answer to Discord and adds (👍/👎) reactions.
+7. The User clicks a reaction, which is logged back to the database.
+
+
 The system follows a modern RAG architecture:
 
 1.  **Data Ingestion (Offline):** A Python script reads source documents, splits them into manageable chunks, generates vector embeddings using an AI model, and stores them in a `pgvector` enabled PostgreSQL database.
