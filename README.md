@@ -1,4 +1,4 @@
-# Helpmate: A RAG-Powered Autonomous Support Agent
+# Helpmate: A RAG-Powered Autonomous Support AI Agent
 
 Helpmate is an end-to-end, containerized AI agent that provides intelligent, context-aware support in Discord. It leverages a Retrieval-Augmented Generation (RAG) pipeline to answer user questions based on a custom knowledge base, ensuring accurate, relevant, and trustworthy responses without human intervention.
 
